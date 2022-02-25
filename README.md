@@ -1,5 +1,5 @@
 # DeFi 挖矿自动复投脚本
-
+erc20 golang 调用 /demo
 源自湾区SWB https://imwsb.org
 
 
