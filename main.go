@@ -23,7 +23,7 @@ var TotalReward = big.NewInt(0)
 var print = printer.NewPrinter()
 
 func main() {
-
+	log.Print(1)
 	defer func() {
 		err := recover()
 		switch err.(type) {
@@ -92,6 +92,7 @@ func main() {
 	return
 
 }
+
 func PrintTotalBalance(rewardToken *token.Token) {
 	log.Printf(
 		"Until %s Total gas used %s  rewards %s %s\n",
