@@ -102,6 +102,7 @@ func PrintTotalBalance(rewardToken *token.Token) {
 		rewardToken.Symbol,
 	)
 }
+
 func Run(farm farm.Farm) {
 	realPendingRewardAmount, err := farm.Harvest()
 	if err != nil {
@@ -131,6 +132,7 @@ func Run(farm farm.Farm) {
 		fmt.Println("\n")
 	}
 }
+
 func pause() {
 	fmt.Print("Press Any Key to Exit...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')

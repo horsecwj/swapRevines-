@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -198,6 +199,7 @@ func transfer() {
 
 	fmt.Printf("tx sent: %s", signedTx.Hash().Hex())
 }
+
 func erc20Transfer() {
 	client, err := ethclient.Dial("https://rinkeby.infura.io/v3/f5c0b936b9794810b42ee51ee1031c51")
 	if err != nil {
@@ -276,4 +278,32 @@ func erc20Transfer() {
 	}
 
 	fmt.Printf("tx sent: %s", signedTx.Hash().Hex())
+}
+
+func decodeTxParams(abi abi.ABI, v map[string]interface{}, data []byte) (map[string]interface{}, error) {
+	m, err := abi.MethodById(data[:4])
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+	if err := m.Inputs.UnpackIntoMap(v, data[4:]); err != nil {
+		return map[string]interface{}{}, err
+	}
+	return v, nil
+}
+func GetLog() {
+	client, err := ethclient.Dial("https://mainnet.infura.io/v3/2da8854f387e471f9063be2848f6f9a2")
+	txHash := common.HexToHash("0x265947dc2935b60415ff4778ee1a0daa707e14be7e4574d30f8e235232815c32")
+	tx, isPending, err := client.TransactionByHash(context.Background(), txHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Print(isPending)
+	receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Print(receipt)
+
 }
