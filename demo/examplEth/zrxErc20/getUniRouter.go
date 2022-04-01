@@ -8,112 +8,21 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/spf13/cast"
-	"golang.org/x/crypto/sha3"
 	"log"
 	"math/big"
-	exchange "reinvest/demo/examplEth/contracts_0xprotocol" // for demo
-	Erc20Abi "reinvest/demo/examplEth/erc20Tokern"
+	exchange "reinvest/demo/examplEth/contractsUni"
 	"strconv"
 	"strings"
 )
 
-//    event LogFill(
-//        address indexed maker,
-//        address taker,
-//        address indexed feeRecipient,
-//        address makerToken,
-//        address takerToken,
-//        uint filledMakerTokenAmount,
-//        uint filledTakerTokenAmount,
-//        uint paidMakerFee,
-//        uint paidTakerFee,
-//        bytes32 indexed tokens, // keccak256(makerToken, takerToken), allows subscribing to a token pair
-//        bytes32 orderHash
-//    );
-
-// LogFill ...
-type LogFill struct {
-	Maker                  common.Address
-	Taker                  common.Address
-	FeeRecipient           common.Address
-	MakerToken             common.Address
-	TakerToken             common.Address
-	FilledMakerTokenAmount *big.Int
-	FilledTakerTokenAmount *big.Int
-	PaidMakerFee           *big.Int
-	PaidTakerFee           *big.Int
-	Tokens                 [32]byte
-	OrderHash              [32]byte
-}
-
-//    function fillOrder(
-//          address[5] orderAddresses,
-//          uint[6] orderValues,
-//          uint fillTakerTokenAmount,
-//          bool shouldThrowOnInsufficientBalanceOrAllowance,
-//          uint8 v,
-//          bytes32 r,
-//          bytes32 s)
-//          public
-//          returns (uint filledTakerTokenAmount);
-
-// LogFill ...
-
-type FillOrder struct {
-	OrderAddresses                              common.Address
-	OrderValues                                 []big.Int
-	FillTakerTokenAmount                        *big.Int
-	ShouldThrowOnInsufficientBalanceOrAllowance bool
-	V                                           uint8
-	R                                           [32]byte
-	S                                           [32]byte
-}
-
-// LogCancel ...
-type LogCancel struct {
-	Maker                     common.Address
-	FeeRecipient              common.Address
-	MakerToken                common.Address
-	TakerToken                common.Address
-	CancelledMakerTokenAmount *big.Int
-	CancelledTakerTokenAmount *big.Int
-	Tokens                    [32]byte
-	OrderHash                 [32]byte
-}
-
-// LogError ...
-type LogError struct {
-	ErrorID   uint8
-	OrderHash [32]byte
-}
-
-func decodeTxParams(abi abi.ABI, v map[string]interface{}, data []byte) (map[string]interface{}, error) {
-	transferFnSignature := []byte("transfer(address,uint256)")
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(transferFnSignature)
-	methodID := hash.Sum(nil)[:4]
-	fmt.Println(hexutil.Encode(methodID)) // 0xa9059cbb
-	m, err := abi.MethodById(data[:4])
-	if err != nil {
-		return map[string]interface{}{}, err
-	}
-	//. 'balanceOf(address)': '70a08231', 'balances(address)': '27e235e3', 'basisPointsRate()': 'dd644f72', 'maximumFee()': '35390714', 'owner()': '8da5cb5b', ...
-	//27e235e3
-	if err := m.Inputs.UnpackIntoMap(v, data[4:]); err != nil {
-		return map[string]interface{}{}, err
-	}
-	return v, nil
-}
-
-func main() {
+func GetUniRouterInfo() {
 	client, err := ethclient.Dial("https://mainnet.infura.io/v3/2da8854f387e471f9063be2848f6f9a2")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 0x Protocol Exchange smart contract address
-	contractAddress := common.HexToAddress("0x12459C951127e0c374FF9105DdA097662A027093")
+	// uni Protocol Exchange smart contract address
+	contractAddress := common.HexToAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D")
 	query := ethereum.FilterQuery{
 		FromBlock: big.NewInt(6383482),
 		ToBlock:   big.NewInt(6383488),
@@ -127,7 +36,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(exchange.ExchangeABI))
+	contractAbi, err := abi.JSON(strings.NewReader(exchange.ContractsUniABI))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -222,32 +131,4 @@ func main() {
 
 		fmt.Printf("\n\n")
 	}
-}
-
-func GetLog() {
-	client, err := ethclient.Dial("https://mainnet.infura.io/v3/2da8854f387e471f9063be2848f6f9a2")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	contractAbi, err := abi.JSON(strings.NewReader(Erc20Abi.TokenABI))
-	if err != nil {
-		log.Fatal(err)
-	}
-	txHash := common.HexToHash("0x1900e2350ffa26300a536e178f0fbcd2d4dfc6ed62bedf7fadbc64cf2b069eb2")
-	tx, _, err := client.TransactionByHash(context.Background(), txHash)
-	if err != nil {
-		log.Fatal(err)
-	}
-	temp := make(map[string]interface{})
-	input := tx.Data()
-	decodeTxParams(contractAbi, temp, input)
-	addrs := temp["to"].(common.Address).String()
-	value := temp["value"].(*big.Int).Uint64()
-	log.Print(addrs, value)
-	temp2 := make(map[string]interface{})
-	for key, itme := range temp {
-		temp2[key] = cast.ToString(itme)
-	}
-	log.Print(1)
 }

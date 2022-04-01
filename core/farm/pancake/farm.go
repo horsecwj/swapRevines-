@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 	"math/big"
 	"reinvest/core/farm/config"
 	"reinvest/printer"
@@ -39,7 +40,9 @@ func NewPanckeFarm(farmConfig *config.FarmConfig, client *ethclient.Client, toke
 func (c *PancakeFarm) RewardToken() *token.Token {
 	return c.RewardTokenInfo
 }
+
 func (c *PancakeFarm) Harvest() (*big.Int, error) {
+
 	c.Printer.Info("Harvest Reward...")
 	pendingReward, err := c.Pending(c.FarmConfig.NetWork.FarmAddress, c.FarmConfig.Wallet, int(c.FarmConfig.PooID))
 	if err != nil {
@@ -68,6 +71,37 @@ func (c *PancakeFarm) Harvest() (*big.Int, error) {
 }
 
 func (c *PancakeFarm) SwapRewardToPairWithRetry(rewardAmount *big.Int, tryCount int) (*big.Int, *big.Int, string, string, error) {
+	//	auth.Value = big.NewInt(9000000000000000000)     // in wei
+	config.SwapToWBNB()
+	swapTokenARealAmountBNB, swapTxHashBNB, err := c.Swap(big.NewInt(3000000000000000000), "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", tryCount)
+	log.Print(swapTokenARealAmountBNB, swapTxHashBNB)
+	rewardAmount = swapTokenARealAmountBNB
+
+	//ada := "0x55d398326f99059fF775485246999027B3197955"
+	//adb := "0xd32d01A43c869EdcD1117C640fBDcfCFD97d9d65"
+	//swapa, _, err := c.Swap(big.NewInt(200000000000000000), "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", ada, tryCount)
+	//swapb, _, err := c.Swap(big.NewInt(200000000000000000), "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", adb, tryCount)
+	//log.Print(swapa,swapb)
+	//saStr := swapa.String()
+	////88986860720233918128
+	////14725265446135537687
+	//sbStr := swapb.String()
+	//log.Print(saStr,sbStr)
+	//n := new(big.Int)
+	//n, ok := n.SetString("13282543398492994102", 10)
+	//if !ok {
+	//	fmt.Println("SetString: error")
+	//}
+	//fmt.Println(n)
+	//n2 := new(big.Int)
+	//n2, ok = n.SetString("13282543398492994102", 10)
+	//if !ok {
+	//	fmt.Println("SetString: error")
+	//}
+	//fmt.Println(n2)
+	//addLiquidityTx, err := c.addLiquidity(swapa, swapb, ada, adb)
+	//log.Print(addLiquidityTx)
+
 	pairAmount := make(map[string]*big.Int)
 	avg := new(big.Int).Div(rewardAmount, big.NewInt(2))
 	swapTokenARealAmount, swapTxHash, err := c.Swap(avg, c.RewardTokenInfo.Address, c.TokenAInfo.Address, tryCount)
@@ -110,6 +144,10 @@ func (c *PancakeFarm) AddLiquidityWithRetry(wishA *big.Int, wishB *big.Int, toke
 		if count > 1 {
 			fmt.Printf("Try AddLiquidity %d \n", count)
 		}
+		//	0x55d398326f99059fF775485246999027B3197955
+		// 0xd32d01A43c869EdcD1117C640fBDcfCFD97d9d65
+		//344330000000000000000
+		//204544830853370076776
 		addLiquidityTx, err := c.addLiquidity(wishA, wishB, tokenAAddress, tokenBAddress)
 		if err != nil {
 			fmt.Printf("addLiquidity Error %s \n", err.Error())
@@ -126,6 +164,7 @@ func (c *PancakeFarm) AddLiquidityWithRetry(wishA *big.Int, wishB *big.Int, toke
 		count++
 	}
 }
+
 func (c *PancakeFarm) Reinvest() (*big.Int, string, error) {
 	LpTokenBalance, err := c.TokenBasic.GetMyTokenInfo(c.LpTokenInfo.Address)
 	if err != nil {

@@ -43,7 +43,7 @@ func (c *PancakeFarm) GetPoolInfo(farmAddress string, pool int) (*PoolInfo, erro
 	}, nil
 }
 func (c *PancakeFarm) Swap(amount *big.Int, fromToken string, toToken string, tryCount int) (*big.Int, string, error) {
-	if  utils.ToValidateAddress(toToken) != utils.ToValidateAddress(fromToken) {
+	if utils.ToValidateAddress(toToken) != utils.ToValidateAddress(fromToken) {
 		sendAmountToWallet, swapTxHash, err := c.swapWithRetry(amount, fromToken, toToken, tryCount)
 		if err != nil {
 			return nil, swapTxHash, fmt.Errorf("Swap error %w Tx: %s", err, swapTxHash)
@@ -51,7 +51,6 @@ func (c *PancakeFarm) Swap(amount *big.Int, fromToken string, toToken string, tr
 		return sendAmountToWallet, swapTxHash, nil
 	}
 	return amount, "", nil
-
 }
 
 //配对
@@ -93,8 +92,18 @@ func (c *PancakeFarm) addLiquidity(wishA *big.Int, wishB *big.Int, tokenA, token
 	if err != nil {
 		return nil, err
 	}
-	minB := factory.Calc(currentCanPairTokenB, 0.005)
-	minA := factory.Calc(wishA, 0.005)
+	minB := factory.Calc(currentCanPairTokenB, 0.99)
+	minA := factory.Calc(wishA, 0.99)
+	//minA = big.NewInt(0)
+	//minB = big.NewInt(0)
+	minAStr := minA.String()
+	//84763493634115758523
+	//98312180835707786
+	//saStr := swapa.String()
+	//88986860720233918128
+	//14725265446135537687
+	minBStr := minB.String()
+	log.Print(minBStr, minAStr)
 	//fmt.Println(green("Has Approved To: " + router + " for Token B: " + tokenB))
 	return swapRouter.AddLiquidity(tokenA, tokenB, wishA, wishB, minA, minB)
 }
@@ -135,7 +144,40 @@ func (c *PancakeFarm) swapWithRetry(amount *big.Int, fromToken string, toToken s
 
 	}
 }
+
+func (c *PancakeFarm) GetCake() {
+	//fromAddr := "0xa3b0422fb23d8e0f0eaf243cda405dc12ecf2932"
+	//fromAddrs := common.HexToAddress(fromAddr)
+
+}
+
 func (c *PancakeFarm) SwapExactTokenTo(rewardAmount *big.Int, from, to string) (*types.Transaction, error) {
+	approved, err := c.TokenBasic.Approve(from, c.FarmConfig.NetWork.Router, rewardAmount)
+	if err != nil {
+		return nil, fmt.Errorf("Approve Swap Token Error : %w", err)
+	}
+	if !approved {
+		return nil, fmt.Errorf("Approve Swap Token Fail")
+	}
+	//fmt.Println(green("Has Approved To :" + router + " for :" + from))
+	swapRouter, err := NewSwapRouter(c.FarmConfig.NetWork.Router, c.Client, c)
+	if err != nil {
+		return nil, err
+	}
+	factory, err := NewSwapFactory(swapRouter.Factory, c.Client, c)
+
+	wishAmount, err := swapRouter.WishExchange(rewardAmount, from, to)
+	minExchange := factory.Calc(wishAmount[1], 0.005)
+
+	tx, err := swapRouter.SwapExactTokenTo(from, to, rewardAmount, minExchange)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (c *PancakeFarm) SwapExactEthToToken(rewardAmount *big.Int, from, to string) (*types.Transaction, error) {
+
 	approved, err := c.TokenBasic.Approve(from, c.FarmConfig.NetWork.Router, rewardAmount)
 	if err != nil {
 		return nil, fmt.Errorf("Approve Swap Token Error : %w", err)
@@ -160,7 +202,6 @@ func (c *PancakeFarm) SwapExactTokenTo(rewardAmount *big.Int, from, to string) (
 	return tx, nil
 
 }
-
 func (c *PancakeFarm) Pending(farmAddress string, wallet string, pool int) (*PendingReward, error) {
 	if !utils.IsValidAddress(farmAddress) {
 		return &PendingReward{

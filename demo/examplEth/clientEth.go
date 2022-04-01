@@ -280,7 +280,7 @@ func erc20Transfer() {
 	fmt.Printf("tx sent: %s", signedTx.Hash().Hex())
 }
 
-func decodeTxParams(abi abi.ABI, v map[string]interface{}, data []byte) (map[string]interface{}, error) {
+func DecodeTxParams(abi abi.ABI, v map[string]interface{}, data []byte) (map[string]interface{}, error) {
 	m, err := abi.MethodById(data[:4])
 	if err != nil {
 		return map[string]interface{}{}, err
@@ -290,6 +290,7 @@ func decodeTxParams(abi abi.ABI, v map[string]interface{}, data []byte) (map[str
 	}
 	return v, nil
 }
+
 func GetLog() {
 	client, err := ethclient.Dial("https://mainnet.infura.io/v3/2da8854f387e471f9063be2848f6f9a2")
 	txHash := common.HexToHash("0x265947dc2935b60415ff4778ee1a0daa707e14be7e4574d30f8e235232815c32")

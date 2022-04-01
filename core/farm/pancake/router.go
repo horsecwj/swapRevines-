@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 	"math/big"
 	"reinvest/core/farm/pancake/contracts"
 	"reinvest/utils"
@@ -129,6 +130,11 @@ func (c *SwapRouter) AddLiquidity(tokenA, tokenB string, wishA, wishB, minA, min
 		common.HexToAddress(wallet),
 		big.NewInt(deadLine),
 	)
+	am := wishA.String()
+	log.Print(am)
+	bm := wishB.String()
+	log.Print(bm)
+
 	gas, err := c.Client.EstimateGas(context.Background(), ethereum.CallMsg{
 		From:     common.HexToAddress(wallet),
 		To:       &toContract,
@@ -137,6 +143,7 @@ func (c *SwapRouter) AddLiquidity(tokenA, tokenB string, wishA, wishB, minA, min
 		Data:     txData,
 	})
 
+	//gas := uint64(4712388)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +196,7 @@ func (c *SwapRouter) TokenAPairAmount(tokenA, tokenB string, amountB *big.Int, l
 }
 
 func (c *SwapRouter) WishExchange(amountIn *big.Int, fromToken, toToken string) ([]*big.Int, error) {
-	return c.SwapContract.GetAmountsOut(&bind.CallOpts{}, amountIn, []common.Address{
+	return c.SwapContract.GetAmountsOut(nil, amountIn, []common.Address{
 		common.HexToAddress(fromToken),
 		common.HexToAddress(toToken),
 	})

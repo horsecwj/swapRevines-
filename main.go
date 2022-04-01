@@ -2,9 +2,7 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
-	"github.com/manifoldco/promptui"
 	"log"
 	"math/big"
 	"os"
@@ -22,8 +20,10 @@ var reinvestInterval int
 var TotalReward = big.NewInt(0)
 var print = printer.NewPrinter()
 
+//ganache-cli -f https://bsc-dataseed.binance.org -d -i 66 --account="0x956fb3f29e34a14c603f458ffdee4b526a7f6b6b918f6d5f3a9ea7c533fa6b6b,10000000000000000000000"
+//  --unlock  0xa3b0422fb23d8e0f0eaf243cda405dc12ecf2932 -l 8000000
 func main() {
-	log.Print(1)
+
 	defer func() {
 		err := recover()
 		switch err.(type) {
@@ -41,26 +41,26 @@ func main() {
 		cancel()
 		return
 	}
-	minutesValidate := func(input string) error {
-		_, err := strconv.Atoi(input)
-		if err != nil {
-			return errors.New("Invalid Reinvest Time Interval")
-		}
-		return nil
-	}
-
-	between := promptui.Prompt{
-		Label:    "Reinvest  Interval (minute)",
-		Validate: minutesValidate,
-	}
-
-	interval, err := between.Run()
-	if err != nil {
-		print.Error(err.Error())
-		pause()
-		return
-	}
-
+	//minutesValidate := func(input string) error {
+	//	_, err := strconv.Atoi(input)
+	//	if err != nil {
+	//		return errors.New("Invalid Reinvest Time Interval")
+	//	}
+	//	return nil
+	//}
+	//
+	//between := promptui.Prompt{
+	//	Label:    "Reinvest  Interval (minute)",
+	//	Validate: minutesValidate,
+	//}
+	//
+	//interval, err := between.Run()
+	//if err != nil {
+	//	print.Error(err.Error())
+	//	pause()
+	//	return
+	//}
+	interval := "1"
 	reinvestInterval, _ = strconv.Atoi(interval)
 	if reinvestInterval == 0 {
 		reinvestInterval = 10
@@ -108,7 +108,8 @@ func Run(farm farm.Farm) {
 	if err != nil {
 		print.Error(fmt.Sprintf("Get Pending Rewards  Err  %s \n", err.Error()))
 	}
-	if realPendingRewardAmount.Cmp(big.NewInt(0)) >= 1 {
+
+	if realPendingRewardAmount.Cmp(big.NewInt(0)) >= 0 {
 		TotalReward.Add(TotalReward, realPendingRewardAmount)
 		wishA, wishB, tokenAAddres, tokenBAddress, err := farm.SwapRewardToPairWithRetry(realPendingRewardAmount, 10)
 		if err != nil {

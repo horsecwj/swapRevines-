@@ -1,9 +1,5 @@
 package config
 
-import (
-	"github.com/manifoldco/promptui"
-)
-
 type RPCURL string
 type NetInfo struct {
 	Router      string
@@ -40,9 +36,13 @@ var NET_MAPPING = map[int]*NetInfo{
 		RewardToken: "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
 		FarmAddress: "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
 		Name:        "Pancake",
-		RPC:         "https://bsc-dataseed1.binance.org",
+		//http://127.0.0.1:8545
+		//RPC:         "https://bsc-dataseed1.binance.org",
+		RPC: "http://127.0.0.1:8545",
+		//	WBNB :"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+
 	},
-	4:&NetInfo{
+	4: &NetInfo{
 		Router:      "0x05ff2b0db69458a0750badebc4f9e13add608c7f",
 		RewardToken: "0x8f0528ce5ef7b51152a59745befdd91d97091d2f",
 		FarmAddress: "0xA625AB01B08ce023B2a342Dbb12a16f2C8489A8F",
@@ -57,16 +57,17 @@ func NewNetWork() (*NetInfo, func(), error) {
 	for id, netInfo := range NET_MAPPING {
 		netWorks[id] = netInfo.Name
 	}
-	prompt := promptui.Select{
-		Label: "Select Network",
-		Items: netWorks,
-	}
-	number, _, err := prompt.Run()
-	if err != nil {
-		return nil, func() {
-
-		}, err
-	}
+	//prompt := promptui.Select{
+	//	Label: "Select Network",
+	//	Items: netWorks,
+	//}
+	//number, _, err := prompt.Run()
+	//if err != nil {
+	//	return nil, func() {
+	//
+	//	}, err
+	//}
+	number := 3
 	if _, ok := NET_MAPPING[number]; ok {
 		return NET_MAPPING[number], func() {
 		}, nil

@@ -34,3 +34,8 @@ func TestGetLog5(t *testing.T) {
 func TestGetLog6(t *testing.T) {
 	rz.GetUniTrans()
 }
+
+//GetLogAndReciept
+func TestGetLog7(t *testing.T) {
+	rz.GetLogAndReciept()
+}

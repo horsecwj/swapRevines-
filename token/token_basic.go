@@ -75,6 +75,20 @@ func (c *TokenBasic) GetMyTokenInfo(tokenAddress string) (*MyTokenInfo, error) {
 	}, nil
 }
 
+func (c TokenBasic) TransBep(tokenAddress string) {
+	if !utils.IsValidAddress(tokenAddress) {
+		return
+	}
+	tokenContract, err := NewBep20(common.HexToAddress(tokenAddress), c.Client)
+	if err != nil {
+		return
+	}
+	//tokenContract.Transfer()
+	res, err := tokenContract.Approve(nil, common.HexToAddress("0xb4d0C247B0F70e4Fc3682c276CdA61a6AA3EB1ab"), big.NewInt(10000000))
+	log.Print(res)
+
+}
+
 func (c TokenBasic) TokenInfo(tokenAddress string) (*Token, error) {
 	if !utils.IsValidAddress(tokenAddress) {
 		return nil, errors.New("Token Address Is InValid!")
